@@ -7,6 +7,7 @@ This is an attempt to promote SOLID SHACK architecture. Let's build a SOLID SHAC
 <br />
 <b>This is Part II of the series, please check <a href='https://github.com/sgireddy/SHACKSparkBasics'> Part I </a> for implementation plan and our fictitious scenario "optimizing promo efficiency for ISellInstoreAndOnline.com". </b> 
 <br />
+<br />
  <b> Usage: </b> <br />
   Configure your system, start ZooKeeper & Kafka Services <br />
   Create Cassandra Key Store & activities table <br />
