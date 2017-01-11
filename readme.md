@@ -77,7 +77,48 @@ Here is a simple Activity class, in this module we will stream it to kafka, rece
 8. Start Kafka Server
         
         kafka-server-start.sh $KAFKA_HOME/config/server.properties
-9. Either you need to start & stop ZooKeeper each time or use David's instructions (link provided under references) to setup as services 
+        
+9. Create Kafka topic
+        
+        kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic promo-efficiency
+10. Play with Kafka from console <br>
+    To produce messages:
+    
+            kafka-console-producer.sh --broker-list localhost:9092 --topic promo-efficiency
+            type what ever you want and press ENTER to send
+    Kafka provides two ways to to Consume messages (will provide more details in the coding section)
+    I. Receiver approach using ZooKeeper (i.e. ZooKeeper maintains message offsets etc. Easy to use & setup but not efficient & We don't enjoy full control.)
+    
+            kafka-console-consumer.sh --zookeeper localhost:2181 --topic test --from-beginning
+    II. Direct approach where we provide bootstrap server IP (comma separated list of servers in cluster mode, no need to provide all servers as all Kafka needs is to reach out to one node to get cluster details) 
+    
+            kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
+
+11. Create Cassandra Key-Space and Table
+
+        	CREATE KEYSPACE promo
+          	WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+          	    
+            create table promo.activities ( 
+            time_stamp bigint,
+            product_id  bigint,
+            user_id bigint,
+            referrer    text,
+            retail_price bigint,
+            product_discount_pct bigint,
+            cart_discount_pct bigint,
+            action_code bigint,
+            margin_pct bigint,
+            primary key (product_id, time_stamp)
+            )
+            with clustering order by (time_stamp desc);
+            
+12. Clone this repo 
+        
+        git clone https://github.com/sgireddy/SHACKSparkKafkaCassandra
+13. Open project using IntelliJ IDEA (I used CE ) & enjoy coding (will explain critical code in the next section)
+ 
+14. Either you need to start & stop ZooKeeper & Kafka each time or use David's instructions (link provided under references) to setup as services 
         
         kafka-server-stop.sh
         zookeeper-server-stop.sh
@@ -88,9 +129,9 @@ Comming soon ... in few hours...
 <br />
 <br />
 
-<b>References:</b>
-1. Spark Streaming + Kafka Integration Guide
-2. Excellent Course on Lambda Architecture by Ahmed Alkilani <a href='https://app.pluralsight.com/library/courses/spark-kafka-cassandra-applying-lambda-architecture'> link </a>
-3. How to install Apache on CentOS 7 <a href='https://www.vultr.com/docs/how-to-install-apache-kafka-on-centos-7'>Link</a>
-4. David's System Admin Notes <a href='http://davidssysadminnotes.blogspot.com/2016/01/installing-spark-centos-7.html'>Link </a>
+<b>References:</b> <br/>
+1. Spark Streaming + Kafka Integration Guide <br />
+2. Excellent Course on Lambda Architecture by Ahmed Alkilani <a href='https://app.pluralsight.com/library/courses/spark-kafka-cassandra-applying-lambda-architecture'> link </a> <br />
+3. How to install Apache on CentOS 7 <a href='https://www.vultr.com/docs/how-to-install-apache-kafka-on-centos-7'>Link</a> <br />
+4. David's System Admin Notes <a href='http://davidssysadminnotes.blogspot.com/2016/01/installing-spark-centos-7.html'>Link </a> <br />
 
