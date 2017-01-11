@@ -99,8 +99,7 @@ Here is a simple Activity class, in this module we will stream it to kafka, rece
         	CREATE KEYSPACE promo
           	WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
           	
-    <b>NOTE: Cassandra Cluster is essentially a hash map where data is partitioned (& replicated) on different nodes based on the hash key, the first column in the Primary Key will be used as hash key to partition the data, so its essential to select an appropriate key to get optimal performance & evenly distributed system. 
-    Perhaps its a good idea to use timestamp as partition key in production scenario for the example we are using, but in this particular scenario we are generating data on demand so timestamp is not optimal, we are using single node so it does not matter in this context. </b>
+    <b>NOTE: Cassandra Cluster is essentially a hash map where data is partitioned (& replicated) on different nodes based on the hash key, the first column in the Primary Key will be used as hash key to partition the data, so its essential to select an appropriate key to get optimal performance & evenly distributed system. </b>
           	    
             create table promo.activities ( 
             time_stamp bigint,
