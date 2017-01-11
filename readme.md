@@ -76,7 +76,7 @@ Here is a simple Activity class, in this module we will stream it to kafka, rece
 8. Start Kafka Server
         
         kafka-server-start.sh $KAFKA_HOME/config/server.properties
-9. Either you need to start & stop ZooKeeper each time or use David's instructions below to setup as services 
+9. Either you need to start & stop ZooKeeper each time or use David's instructions (link provided under references) to setup as services 
         
         kafka-server-stop.sh
         zookeeper-server-stop.sh
