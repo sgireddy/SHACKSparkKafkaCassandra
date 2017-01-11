@@ -74,8 +74,10 @@ Here is a simple Activity class, in this module we will stream it to kafka, rece
 
         zookeeper-server-start.sh -daemon $KAFKA_HOME/config/zookeeper.properties
 8. Start Kafka Server
+        
         kafka-server-start.sh $KAFKA_HOME/config/server.properties
 9. Either you need to start & stop ZooKeeper each time or use David's instructions below to setup as services 
+        
         kafka-server-stop.sh
         zookeeper-server-stop.sh
         
