@@ -130,10 +130,10 @@ Here is a simple Activity class, in this module we will stream it to kafka, rece
 
 <a href='https://spark.apache.org/docs/1.6.1/streaming-kafka-integration.html'> Spark Streaming + Kafka Integration Guide </a> 
  and the <a href='https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/streaming/DirectKafkaWordCount.scala'> 
- direct streaming example </a> is pretty simple and easy to understand (in my opinion as simple as MSMQ)
+ direct streaming example </a> is pretty simple and easy to understand (in my opinion as simple as MSMQ) so I am leaving kafka & cassandra integration for brevity. I will comback and add more details later.
 
-I am more interested in achieving reliable, resilient & fault tolerance with checkpointing (see spark streaming programming guide for more details) using our getStreamingContext method.
-I fumbled many times on checkpointing, kudos to Ahmed Alkilani for explaining this in detail in his course (I strongly suggest his course even if you are an experienced Spark developer, its very well worth the time and money).
+I am more interested in achieving resilience & fault tolerance with checkpointing (see spark streaming programming guide for more details) using our getStreamingContext method.
+I fumbled many times on checkpointing, kudos to Ahmed Alkilani for explaining this in detail in his course (I recommend this even if you are an experienced Spark developer).
 
 Let's take a look at the code first in the order of its execution:
 
@@ -160,7 +160,7 @@ Now see pattern matching, the streaming context will look into checkpoints and g
             ssc
           }
 
-Now look at our handler job, completely unaware of recovery logic and yet we can take advantage of checkpointing RDD's (to hdfs)
+3. Now look at our handler job, completely unaware of recovery logic and yet we can take advantage of checkpointing RDD's (to hdfs)
 in case if ware doing other aggregations or state management (our next topic) before saving to cassandra (usually saving to cassandra is the last step in the process) 
 
             def promoEfficiencyJob(sc: SparkContext, duration: Duration): StreamingContext = {
