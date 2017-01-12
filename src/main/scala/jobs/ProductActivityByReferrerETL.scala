@@ -23,7 +23,17 @@ object ProductActivityByReferrerETL {
         activity <- utils.tryParse[Activity](line)
       } yield activity
     )
-    .saveToCassandra("promo", "activities")
+    //.cache()
+    //.saveToCassandra("promo", "activities")
+
+    //checkpoint
+//    sc.getCheckpointDir match {
+//      case Some(dir) => ssc.checkpoint(dir)
+//      case _ => println("Unable to set checkpoint")
+//    }
+
+    userActivityStream.saveToCassandra("promo", "activities")
+
 
     /*** Do Analytics on userActivityStream, maintain state, save snapshots to Cassandra as saving direct stream is impractical**/
     ssc

@@ -127,13 +127,71 @@ Here is a simple Activity class, in this module we will stream it to kafka, rece
         
     
 <h4>Critical Code Explained</h4>
-Comming soon ... in few hours...
+
+<a href='https://spark.apache.org/docs/1.6.1/streaming-kafka-integration.html'> Spark Streaming + Kafka Integration Guide </a> 
+ and the <a href='https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/streaming/DirectKafkaWordCount.scala'> 
+ direct streaming example </a> is pretty simple and easy to understand (in my opinion as simple as MSMQ)
+
+I am more interested in achieving reliable, resilient & fault tolerance with checkpointing (see spark streaming programming guide for more details) using our getStreamingContext method.
+I fumbled many times on checkpointing, kudos to Ahmed Alkilani for explaining this in detail in his course (I strongly suggest his course even if you are an experienced Spark developer, its very well worth the time and money).
+
+Let's take a look at the code first in the order of its execution:
+
+1. SparkConsumer.scala is our entry point, here is how we instantiate our streaming context (ssc) by invoking getStreamingContext helper function from utils config.Contexts. 
+Please note, we are passing our streaming handler (ProductActivityByReferrerETL) as an argument.  
+
+
+            val ssc = config.Contexts
+              .getStreamingContext(jobs.ProductActivityByReferrerETL.promoEfficiencyJob, spark, batchDuration)
+          
+2. Here is our getStreamingContext function: 
+See the signature for creatingFunc <i> () => streamingApp(sc, batchDuration) </i> it takes nothing and returns our handler back. 
+Now see pattern matching, the streaming context will look into checkpoints and get us an active streaming context if there exists one.   
+          
+          def getStreamingContext(streamingApp: (SparkContext, Duration) => StreamingContext,
+                                  sc: SparkContext,
+                                  batchDuration: Duration) = {
+            val creatingFunc = () => streamingApp(sc, batchDuration)
+            val ssc = sc.getCheckpointDir match {
+              case Some(checkpointDir) => StreamingContext.getActiveOrCreate(checkpointDir, creatingFunc, sc.hadoopConfiguration, createOnError = true)
+              case None => StreamingContext.getActiveOrCreate(creatingFunc)
+            }
+            sc.getCheckpointDir.foreach( cp => sc.setCheckpointDir(cp))
+            ssc
+          }
+
+Now look at our handler job, completely unaware of recovery logic and yet we can take advantage of checkpointing RDD's (to hdfs)
+in case if ware doing other aggregations or state management (our next topic) before saving to cassandra (usually saving to cassandra is the last step in the process) 
+
+            def promoEfficiencyJob(sc: SparkContext, duration: Duration): StreamingContext = {
+              val ssc = new StreamingContext(sc, duration)
+              val topic = KafkaSettings.kafkaTopic
+              val kafkaDirectParams = KafkaSettings.kafkaDirectParams
+              val kafkaDirectStream = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](
+                ssc, kafkaDirectParams, Set(topic)
+              ).map(_._2)
+          
+              val userActivityStream = kafkaDirectStream.transform( input =>
+                for {
+                  line <- input
+                  activity <- utils.tryParse[Activity](line)
+                } yield activity
+              )
+              .saveToCassandra("promo", "activities")
+          
+              /*** Do Analytics on userActivityStream, maintain state, save snapshots to Cassandra as saving direct stream is impractical**/
+              ssc
+            }
+
+Up next... Hadoop & State Management
+
 <br />
 <br />
 
 <b>References:</b> <br/>
 1. Spark Streaming + Kafka Integration Guide <br />
-2. Excellent Course on Lambda Architecture by Ahmed Alkilani <a href='https://app.pluralsight.com/library/courses/spark-kafka-cassandra-applying-lambda-architecture'> link </a> <br />
-3. How to install Apache on CentOS 7 <a href='https://www.vultr.com/docs/how-to-install-apache-kafka-on-centos-7'>Link</a> <br />
-4. David's System Admin Notes <a href='http://davidssysadminnotes.blogspot.com/2016/01/installing-spark-centos-7.html'>Link </a> <br />
+2. Spark Streaming Programming Guide <br /> 
+3. Excellent Course on Lambda Architecture by Ahmed Alkilani <a href='https://app.pluralsight.com/library/courses/spark-kafka-cassandra-applying-lambda-architecture'> link </a> <br />
+4. How to install Apache on CentOS 7 <a href='https://www.vultr.com/docs/how-to-install-apache-kafka-on-centos-7'>Link</a> <br />
+5. David's System Admin Notes <a href='http://davidssysadminnotes.blogspot.com/2016/01/installing-spark-centos-7.html'>Link </a> <br />
 
