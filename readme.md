@@ -138,7 +138,7 @@ I fumbled many times on checkpointing, kudos to Ahmed Alkilani for explaining th
 Let's take a look at the code first in the order of its execution:
 
 1. SparkConsumer.scala is our entry point, here is how we instantiate our streaming context (ssc) by invoking getStreamingContext helper function from utils config.Contexts. 
-Please note, we are passing our streaming handler (ProductActivityByReferrerETL) as an argument.  
+Please note, we injecting streaming handler (ProductActivityByReferrerETL) as an argument.  
 
 
             val ssc = config.Contexts
@@ -160,8 +160,7 @@ Now see pattern matching, the streaming context will look into checkpoints and g
             ssc
           }
 
-3. Now look at our handler job, completely unaware of recovery logic and yet we can take advantage of checkpointing RDD's (to hdfs)
-in case if ware doing other aggregations or state management (our next topic) before saving to cassandra (usually saving to cassandra is the last step in the process) 
+3. Now we can take advantage of checkpointing RDD's (to hdfs) in case if ware doing other aggregations or state management (our next topic) before saving to cassandra (usually saving to cassandra is the last step in the process) 
 
             def promoEfficiencyJob(sc: SparkContext, duration: Duration): StreamingContext = {
               val ssc = new StreamingContext(sc, duration)
