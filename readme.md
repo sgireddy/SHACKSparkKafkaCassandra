@@ -127,18 +127,14 @@ Here is a simple Activity class, in this module we will stream it to kafka, rece
         
     
 <h4>Critical Code Explained</h4>
+For brevity I am skipping basics of streaming context. Please see References for more details. <br />
+<b>Streaming Context: Enabling Fault Tolerance with checkpoints</b>
 
-<a href='https://spark.apache.org/docs/1.6.1/streaming-kafka-integration.html'> Spark Streaming + Kafka Integration Guide </a> 
- and the <a href='https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/streaming/DirectKafkaWordCount.scala'> 
- direct streaming example </a> is pretty simple and easy to understand (in my opinion as simple as MSMQ) so I am leaving kafka & cassandra integration for brevity. I will comback and add more details later.
-
-I am more interested in achieving resilience & fault tolerance with checkpointing (see spark streaming programming guide for more details) using our getStreamingContext method.
-I fumbled many times on checkpointing, kudos to Ahmed Alkilani for explaining this in detail in his course (I recommend this even if you are an experienced Spark developer).
-
-Let's take a look at the code first in the order of its execution:
+Let the code speak: <br />
 
 1. SparkConsumer.scala is our entry point, here is how we instantiate our streaming context (ssc) by invoking getStreamingContext helper function from utils config.Contexts. 
-Please note, we injecting streaming handler (ProductActivityByReferrerETL) as an argument.  
+Please note, we injecting streaming handler (ProductActivityByReferrerET
+L) as an argument.  
 
 
             val ssc = config.Contexts
@@ -181,6 +177,71 @@ Now see pattern matching, the streaming context will look into checkpoints and g
               /*** Do Analytics on userActivityStream, maintain state, save snapshots to Cassandra as saving direct stream is impractical**/
               ssc
             }
+
+<h4>Kafka & Cassandra Integration</h4>
+
+<a>Kafka </a>
+Publishing messages to Kafka is pretty simple, please see KafkaStreamGenerator for more details. I think the code is self explanatory. <br />
+Kafka provides two approaches for consuming messages <br />
+ 1. Receiver-based Approach where zookeeper takes care of managing message offsets, please see <a href='https://spark.apache.org/docs/1.6.1/streaming-kafka-integration.html'> 
+ Spark Streaming + Kafka Integration Guide </a> <br />
+ 2. Direct Approach: We will be using this approach where we persist offsets to Cassandra database. Please check
+<a href='https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/streaming/DirectKafkaWordCount.scala'> 
+direct streaming example </a> for details. <br />
+
+Let's Inspect the code: <br />
+
+1. Retrieve latest offset ranges from Cassandra 
+
+        var fromOffsets: Map[TopicAndPartition, Long] = Map.empty
+        val cassandraContext = new CassandraSQLContext(sc)
+        val offsetDF = cassandraContext.sql(
+          """
+            |select topic, partition, max(until_offset) as until_offset
+            |from promo.offsets
+            |group by topic, partition
+          """.stripMargin)
+        fromOffsets = offsetDF.rdd.collect().map( o => {
+          println(o)
+          (TopicAndPartition(o.getAs[String]("topic"), o.getAs[Int]("partition")), o.getAs[Long]("until_offset") + 1)
+        }
+        ).toMap
+
+2. Setup Kafka Direct Stream
+
+        val kafkaDirectStream = fromOffsets.isEmpty match {
+          case true =>
+            KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](
+              ssc, kafkaDirectParams, Set(kafkaTopic)
+            )
+          case false =>
+            KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder, (String, String)](
+              ssc, kafkaDirectParams, fromOffsets, { mmd: MessageAndMetadata[String, String] => (mmd.key(), mmd.message()) }
+            )
+        }
+        
+3. Checkpoint so that the streaming context could recover  
+    
+            //Create Checkpoint
+            kafkaDirectStream.checkpoint(Seconds(0))
+
+4. Persist new offset ranges to Cassandra
+ 
+            //Save Offsets to Cassandra
+            kafkaDirectStream.foreachRDD( rdd => {
+              val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
+              sc.makeRDD[OffsetRange](offsetRanges).saveToCassandra("promo", "offsets") //, SomeColumns("topic", "partition", "fromOffset", "untilOffset")
+            })
+5. Persist Activities to Cassandra (Ideally we would persist raw data to HDFS, and refined data to Serving Layer, i.e. Cassandra, we will refine this in next part)
+
+            //Persist to Cassandra
+            val userActivityStream = kafkaDirectStream.transform( input =>
+              for {
+                (k, v) <- input
+                activity <- utils.tryParse[Activity](v)
+              } yield activity
+            )
+            .saveToCassandra("promo", "activities")
 
 Up next... Hadoop & State Management
 

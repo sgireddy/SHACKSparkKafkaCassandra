@@ -6,8 +6,7 @@ import net.liftweb.json.Serialization.write
 import org.apache.kafka.clients.producer.{KafkaProducer, Producer, ProducerRecord, RecordMetadata}
 import scala.concurrent._
 import scala.util.Random
-import Settings.ClickStreamGeneratorSettings._
-import Settings.KafkaSettings._
+import Settings._
 /** Created by Shashi Gireddy on 1/3/17 */
 object KafkaStreamGenerator extends App {
 

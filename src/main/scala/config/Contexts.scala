@@ -3,7 +3,7 @@ package config
 import java.lang.management.ManagementFactory
 
 import org.apache.spark.{SparkConf, SparkContext}
-import config.Settings.ClickStreamGeneratorSettings._
+import config.Settings._
 //import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.apache.spark.sql.{SQLContext}
 import org.apache.spark.streaming.{Duration, StreamingContext}

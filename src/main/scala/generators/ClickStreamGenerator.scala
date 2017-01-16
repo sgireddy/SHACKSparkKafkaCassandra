@@ -9,7 +9,7 @@ import scala.util.Random
 /** Created by Shashi Gireddy (https://github.com/sgireddy) on 1/2/17 */
 object ClickStreamGenerator extends App {
 
-  import Settings.ClickStreamGeneratorSettings._
+  import Settings._
   implicit val formats = DefaultFormats
   val rnd = new Random()
   val products = getProducts()
