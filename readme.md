@@ -250,8 +250,9 @@ Up next... Hadoop & State Management
 
 <b>References:</b> <br/>
 1. Spark Streaming + Kafka Integration Guide <br />
-2. Spark Streaming Programming Guide <br /> 
-3. Excellent Course on Lambda Architecture by Ahmed Alkilani <a href='https://app.pluralsight.com/library/courses/spark-kafka-cassandra-applying-lambda-architecture'> link </a> <br />
-4. How to install Apache on CentOS 7 <a href='https://www.vultr.com/docs/how-to-install-apache-kafka-on-centos-7'>Link</a> <br />
-5. David's System Admin Notes <a href='http://davidssysadminnotes.blogspot.com/2016/01/installing-spark-centos-7.html'>Link </a> <br />
+2. Spark Streaming Programming Guide <br />
+3. <a href='https://github.com/koeninger/kafka-exactly-once/blob/master/blogpost.md'> Kafka Exactly Once </a> <br />
+4. Excellent Course on Lambda Architecture by Ahmed Alkilani <a href='https://app.pluralsight.com/library/courses/spark-kafka-cassandra-applying-lambda-architecture'> link </a> <br />
+5. How to install Apache on CentOS 7 <a href='https://www.vultr.com/docs/how-to-install-apache-kafka-on-centos-7'>Link</a> <br />
+6. David's System Admin Notes <a href='http://davidssysadminnotes.blogspot.com/2016/01/installing-spark-centos-7.html'>Link </a> <br />
 
