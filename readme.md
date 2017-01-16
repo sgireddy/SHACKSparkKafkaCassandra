@@ -94,7 +94,7 @@ Here is a simple Activity class, in this module we will stream it to kafka, rece
     
             kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
 
-11. Create Cassandra Key-Space and Table
+11. Create Cassandra Key-Space and Tables for activities, offsets
 
         	CREATE KEYSPACE promo
           	WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
@@ -114,6 +114,16 @@ Here is a simple Activity class, in this module we will stream it to kafka, rece
             primary key (product_id, time_stamp)
             )
             with clustering order by (time_stamp desc);
+            
+            create table promo.offsets ( 
+            topic text,
+            partition bigint,
+            from_offset bigint,
+            until_offset bigint,
+            primary key (topic, partition, from_offset, until_offset)
+            )
+            with clustering order by (partition desc, from_offset desc, until_offset desc);
+
             
 12. Clone this repo 
         
