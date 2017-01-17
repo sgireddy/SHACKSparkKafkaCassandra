@@ -81,6 +81,15 @@ Here is a simple Activity class, in this module we will stream it to kafka, rece
 9. Create Kafka topic
         
         kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic promo-efficiency
+   To Delete the topic or purge the queue (<a href='http://stackoverflow.com/questions/16284399/purge-kafka-queue/30833940#30833940'> stackoverflow link </a>)
+    
+    Tested in Kafka 0.8.2, for the quick-start example: First, Add one line to server.properties file under config folder:
+        
+        delete.topic.enable=true
+    then, you can run this command:
+        
+        bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic promo-efficiency
+        
 10. Play with Kafka from console <br>
     To produce messages:
     
